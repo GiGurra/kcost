@@ -40,14 +40,15 @@ func GetPods(namespace string) ([]model.Pod, error) {
 	return getListing[model.Pod]("pods", namespace)
 }
 
-func GetNamespace() (string, error) {
-	cmd := exec.Command("kubectl", "config", "view", "--minify", "--output", "jsonpath={..namespace}")
-	bytes, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("error running kubectl command: %s, %s", err, bytes)
-	}
-	return string(bytes), nil
-}
+//
+//func GetNamespace() (string, error) {
+//	cmd := exec.Command("kubectl", "config", "view", "--minify", "--output", "jsonpath={..namespace}")
+//	bytes, err := cmd.Output()
+//	if err != nil {
+//		return "", fmt.Errorf("error running kubectl command: %s, %s", err, bytes)
+//	}
+//	return string(bytes), nil
+//}
 
 func GetAllNamespaces() ([]string, error) {
 	cmd := exec.Command("kubectl", "get", "namespaces", "-o", "jsonpath={..metadata.name}")

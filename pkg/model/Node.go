@@ -1,6 +1,5 @@
 package model
 
-// We are only interested in the node name and labels
 type Node struct {
 	// Name and labels are found in the metadata section
 	Metadata struct {
