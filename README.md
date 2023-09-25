@@ -7,7 +7,7 @@ and calculates the total cost.
 ### How it works
 
 `kcost` uses `kubectl` to interact with the Kubernetes cluster. It retrieves information about the nodes and pods in the
-cluster, and calculates the cost based on the CPU and memory requested by each pod.
+cluster, except those in excluded namespaces, and calculates the cost based on the CPU and memory requested by each pod.
 
 ### Prerequisites
 
