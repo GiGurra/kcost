@@ -11,7 +11,7 @@ cluster, except those in excluded namespaces, and calculates the cost based on t
 
 ### Prerequisites
 
-* Go 1.21 or higher
+* [Go 1.21 or higher](https://go.dev/doc/install)
 * kubectl installed and configured to interact with your GKE cluster
 
 ### Installation
