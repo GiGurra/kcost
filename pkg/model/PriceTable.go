@@ -13,10 +13,10 @@ type PriceTable struct {
 }
 
 type GKE struct {
-	Autopilot Autopilot `yaml:"autopilot"`
+	Autopilot GkePrice `yaml:"autopilot"`
 }
 
-type Autopilot struct {
+type GkePrice struct {
 	Spot    Resource `yaml:"spot"`
 	Regular Resource `yaml:"regular"`
 }
