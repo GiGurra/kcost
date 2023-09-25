@@ -41,6 +41,6 @@ func main() {
 	}
 
 	for _, pod := range pods {
-		slog.Info(fmt.Sprintf("Pod: %s { node=%s, cpu=%s, memory=%s }\n", pod.Name(), pod.NodeName(), pod.CPURequest(), pod.MemoryRequest()))
+		slog.Info(fmt.Sprintf("Pod: %s { node=%s, cpu=%f, memory=%f }\n", pod.Name(), pod.NodeName(), pod.CPURequestCores(), pod.MemoryRequestGB()))
 	}
 }
