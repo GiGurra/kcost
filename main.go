@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/gigurra/kcost/pkg/kubectl"
 	"github.com/gigurra/kcost/pkg/model"
-	"github.com/samber/lo"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -18,13 +17,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	prices, err := model.NewPriceTableFromFile("prices.yaml")
+	config, err := model.NewConfigFromFile("config.yaml")
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error reading prices: %v\n", err))
+		slog.Error(fmt.Sprintf("Error reading config: %v\n", err))
 		os.Exit(1)
 	}
 
-	slog.Info(fmt.Sprintf("Prices: %+v\n", prices))
+	slog.Info(fmt.Sprintf("Config: %+v\n", config))
 
 	nodes, err := kubectl.GetNodes()
 	if err != nil {
@@ -32,54 +31,29 @@ func main() {
 		os.Exit(1)
 	}
 
-	namespace, err := kubectl.GetNamespace()
+	for _, node := range nodes {
+		slog.Info(fmt.Sprintf("Node %s: spot=%v, region=%v, zone=%s", node.Name(), node.IsSpotNode(), node.Region(), node.Zone()))
+	}
+
+	slog.Info(fmt.Sprintf(""))
+
+	allNamespaces, err := kubectl.GetAllNamespaces()
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error getting namespace: %v\n", err))
+		slog.Error(fmt.Sprintf("Error getting all namespaces: %v\n", err))
 		os.Exit(1)
 	}
 
-	pods, err := kubectl.GetPods()
-	if err != nil {
-		slog.Error(fmt.Sprintf("Error getting pods: %v\n", err))
-		os.Exit(1)
+	total := 0.0
+	for _, ns := range allNamespaces {
+		if !slices.Contains(config.Namespaces.Excluded, ns) {
+			nsPrice := namespacePrice(config, ns, nodes)
+			total += nsPrice
+		}
 	}
 
-	nodeLkup := make(map[string]model.Node)
-	for _, node := range nodes {
-		nodeLkup[node.Name()] = node
-	}
+	slog.Info(fmt.Sprintf(""))
+	slog.Info(fmt.Sprintf("-->> TOTAL PRICE: %f\n", total))
 
-	podPriceLkup := make(map[string]float64)
-	for _, pod := range pods {
-		podPriceLkup[pod.Name()] = podPrice(pod, nodeLkup[pod.NodeName()], prices.GKE.Autopilot)
-	}
-
-	slices.SortFunc(pods, func(a, b model.Pod) int {
-		return int(podPriceLkup[a.Name()] - podPriceLkup[b.Name()])
-	})
-
-	podsPerNode := lo.GroupBy(pods, func(pod model.Pod) string {
-		return pod.NodeName()
-	})
-
-	for _, node := range nodes {
-		slog.Info(fmt.Sprintf("Node %s: spot=%v, region=%v, zone=%s, pods=%d\n", node.Name(), node.IsSpotNode(), node.Region(), node.Zone(), len(podsPerNode[node.Name()])))
-	}
-
-	slog.Info("---------------------------------------")
-	slog.Info("---------------------------------------")
-	slog.Info(fmt.Sprintf("      PRICE FOR NAMESPACE %s       ", namespace))
-	slog.Info("---------------------------------------")
-	for _, pod := range pods {
-		node := nodeLkup[pod.NodeName()]
-		slog.Info(fmt.Sprintf(" * pod %s: spot=%v, cpu=%f, memory=%f => price=%f\n", pod.Name(), node.IsSpotNode(), pod.CPURequestCores(), pod.MemoryRequestGB(), podPriceLkup[pod.Name()]))
-	}
-	priceSum := 0.0
-	for _, pod := range pods {
-		priceSum += podPriceLkup[pod.Name()]
-	}
-	slog.Info("- - - - - - - - - - - - - - - - - - - -")
-	slog.Info(fmt.Sprintf(" -> Total price: %f\n", priceSum))
 }
 
 func podPrice(
@@ -92,4 +66,44 @@ func podPrice(
 	} else {
 		return pod.CPURequestCores()*prices.Regular.CPU + pod.MemoryRequestGB()*prices.Regular.RAM
 	}
+}
+
+func namespacePrice(
+	config model.Config,
+	namespace string,
+	nodes []model.Node,
+) float64 {
+
+	pods, err := kubectl.GetPods(namespace)
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error getting pods: %v\n", err))
+		os.Exit(1)
+	}
+
+	nodeLkup := make(map[string]model.Node)
+	for _, node := range nodes {
+		nodeLkup[node.Name()] = node
+	}
+
+	podPriceLkup := make(map[string]float64)
+	for _, pod := range pods {
+		podPriceLkup[pod.Name()] = podPrice(pod, nodeLkup[pod.NodeName()], config.Prices.GKE.Autopilot)
+	}
+
+	slices.SortFunc(pods, func(a, b model.Pod) int {
+		return int(podPriceLkup[a.Name()] - podPriceLkup[b.Name()])
+	})
+
+	slog.Info(fmt.Sprintf("-----------PRICE FOR NAMESPACE %s------------", namespace))
+	for _, pod := range pods {
+		node := nodeLkup[pod.NodeName()]
+		slog.Info(fmt.Sprintf(" + pod %s: spot=%v, cpu=%f, memory=%f => price=%f\n", pod.Name(), node.IsSpotNode(), pod.CPURequestCores(), pod.MemoryRequestGB(), podPriceLkup[pod.Name()]))
+	}
+	priceSum := 0.0
+	for _, pod := range pods {
+		priceSum += podPriceLkup[pod.Name()]
+	}
+	slog.Info(fmt.Sprintf(" = %f\n", priceSum))
+
+	return priceSum
 }

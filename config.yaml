@@ -1,0 +1,17 @@
+prices:
+  gke:
+    autopilot:
+      spot:
+        cpu: 11
+        ram: 1
+      regular:
+        cpu: 36
+        ram: 4
+namespaces:
+  excluded:
+    - 'gke-gmp-system'
+    - 'gke-managed-filestorecsi'
+    - 'gmp-public'
+    - 'kube-node-lease'
+    - 'kube-public'
+    - 'kube-system'

@@ -8,6 +8,15 @@ import (
 	"os"
 )
 
+type Config struct {
+	Prices     PriceTable `yaml:"prices"`
+	Namespaces Namespaces `yaml:"namespaces"`
+}
+
+type Namespaces struct {
+	Excluded []string `yaml:"excluded"`
+}
+
 type PriceTable struct {
 	GKE GKE `yaml:"gke"`
 }
@@ -51,19 +60,19 @@ func ReadFile(path string) ([]byte, error) {
 	return bytes, nil
 }
 
-func NewPriceTableFromFile(path string) (PriceTable, error) {
+func NewConfigFromFile(path string) (Config, error) {
 
 	// Read bytes from file
 	bytes, err := ReadFile(path)
 	if err != nil {
-		return PriceTable{}, fmt.Errorf("error reading file: %v", err)
+		return Config{}, fmt.Errorf("error reading file: %v", err)
 	}
 
 	// parse bytes into price table
-	table := PriceTable{}
+	table := Config{}
 	err = yaml.Unmarshal(bytes, &table)
 	if err != nil {
-		return PriceTable{}, fmt.Errorf("error parsing yaml: %v", err)
+		return Config{}, fmt.Errorf("error parsing yaml: %v", err)
 	}
 
 	return table, nil
