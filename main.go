@@ -10,10 +10,6 @@ import (
 )
 
 func main() {
-	// Estimate the cost of a Kubernetes cluster
-	// We start by just fetching all pods and nodes
-
-	// Check that kubectl is installed
 	_, err := exec.LookPath("kubectl")
 	if err != nil {
 		slog.Error("kubectl not found")
