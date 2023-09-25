@@ -34,3 +34,12 @@ func GetNodes() ([]model.Node, error) {
 func GetPods() ([]model.Pod, error) {
 	return getListing[model.Pod]("pods")
 }
+
+func GetNamespace() (string, error) {
+	cmd := exec.Command("kubectl", "config", "view", "--minify", "--output", "jsonpath={..namespace}")
+	bytes, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("error running kubectl command: %s, %s", err, bytes)
+	}
+	return string(bytes), nil
+}

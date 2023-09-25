@@ -32,6 +32,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	namespace, err := kubectl.GetNamespace()
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error getting namespace: %v\n", err))
+		os.Exit(1)
+	}
+
 	pods, err := kubectl.GetPods()
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error getting pods: %v\n", err))
@@ -60,24 +66,20 @@ func main() {
 		slog.Info(fmt.Sprintf("Node %s: spot=%v, region=%v, zone=%s, pods=%d\n", node.Name(), node.IsSpotNode(), node.Region(), node.Zone(), len(podsPerNode[node.Name()])))
 	}
 
-	slog.Info("-------------------------")
-	slog.Info("-------------------------")
-	slog.Info("      PRICES PER POD	 ")
-	slog.Info("-------------------------")
+	slog.Info("---------------------------------------")
+	slog.Info("---------------------------------------")
+	slog.Info(fmt.Sprintf("      PRICE FOR NAMESPACE %s       ", namespace))
+	slog.Info("---------------------------------------")
 	for _, pod := range pods {
 		node := nodeLkup[pod.NodeName()]
-		slog.Info(fmt.Sprintf("Pod %s: spot=%v, cpu=%f, memory=%f => price=%f\n", pod.Name(), node.IsSpotNode(), pod.CPURequestCores(), pod.MemoryRequestGB(), podPriceLkup[pod.Name()]))
+		slog.Info(fmt.Sprintf(" * pod %s: spot=%v, cpu=%f, memory=%f => price=%f\n", pod.Name(), node.IsSpotNode(), pod.CPURequestCores(), pod.MemoryRequestGB(), podPriceLkup[pod.Name()]))
 	}
-
-	slog.Info("-------------------------")
-	slog.Info("-------------------------")
-	slog.Info("      PRICE FOR NS       ")
-	slog.Info("-------------------------")
 	priceSum := 0.0
 	for _, pod := range pods {
 		priceSum += podPriceLkup[pod.Name()]
 	}
-	slog.Info(fmt.Sprintf("Total price: %f\n", priceSum))
+	slog.Info("- - - - - - - - - - - - - - - - - - - -")
+	slog.Info(fmt.Sprintf(" -> Total price: %f\n", priceSum))
 }
 
 func podPrice(
