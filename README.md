@@ -48,6 +48,9 @@ namespaces:
     - 'kube-system'
 ```
 
+Prices are in currency units per GB (ram) and CPU cores (cpu).
+The example prices match the best Autopilot prices in Euros currently (2023-09-25).
+
 ### Example
 
 ```shell
@@ -60,6 +63,8 @@ namespaces:
 2023/09/25 23:14:53 INFO 
 2023/09/25 23:14:53 INFO -->> TOTAL PRICE: 6.000000
 ```
+
+The cpu and memory units are in GB and cores respectively.
 
 ### License
 
