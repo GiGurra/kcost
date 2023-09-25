@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gigurra/kcost/pkg/kubectl"
 	"github.com/gigurra/kcost/pkg/model"
+	"github.com/samber/lo"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -31,10 +32,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	for _, node := range nodes {
-		slog.Info(fmt.Sprintf("Node: %s { spot=%v, region=%v, zone=%s }\n", node.Name(), node.IsSpotNode(), node.Region(), node.Zone()))
-	}
-
 	pods, err := kubectl.GetPods()
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error getting pods: %v\n", err))
@@ -54,6 +51,14 @@ func main() {
 	slices.SortFunc(pods, func(a, b model.Pod) int {
 		return int(podPriceLkup[a.Name()] - podPriceLkup[b.Name()])
 	})
+
+	podsPerNode := lo.GroupBy(pods, func(pod model.Pod) string {
+		return pod.NodeName()
+	})
+
+	for _, node := range nodes {
+		slog.Info(fmt.Sprintf("Node %s: spot=%v, region=%v, zone=%s, pods=%d\n", node.Name(), node.IsSpotNode(), node.Region(), node.Zone(), len(podsPerNode[node.Name()])))
+	}
 
 	slog.Info("-------------------------")
 	slog.Info("-------------------------")
