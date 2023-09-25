@@ -26,7 +26,7 @@ func main() {
 	}
 
 	for _, node := range nodes {
-		fmt.Printf("Node: %s, isSpot: %v\n", node.getName(), node.isSpotNode())
+		fmt.Printf("Node: %s { spot=%v, region=%v, zone=%s }\n", node.getName(), node.isSpotNode(), node.region(), node.zone())
 	}
 }
 
@@ -75,4 +75,16 @@ func (n Node) getLabels() map[string]string {
 func (n Node) isSpotNode() bool {
 	value, ok := n.Metadata.Labels["cloud.google.com/gke-spot"]
 	return ok && value == "true"
+}
+
+func (n Node) region() string {
+	return n.Metadata.Labels["failure-domain.beta.kubernetes.io/region"]
+}
+
+func (n Node) zone() string {
+	return n.Metadata.Labels["failure-domain.beta.kubernetes.io/zone"]
+}
+
+func (n Node) tpe() string {
+	return n.Metadata.Labels["beta.kubernetes.io/instance-type"]
 }
