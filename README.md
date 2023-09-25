@@ -1,6 +1,6 @@
 # kcost
 
-`kcost` is a cli tool (& quick hack) to calculate the cost of a Google Kubernetes Engine (GKE)
+`kcost` is a cli tool (& quick hack) to calculate the **monthly** cost of a Google Kubernetes Engine (GKE)
 Autopilot cluster. It iterates over all pods in the cluster, checks their resource consumption against a price table,
 and calculates the total cost.
 
