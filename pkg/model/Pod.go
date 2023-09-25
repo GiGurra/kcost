@@ -6,7 +6,6 @@ import (
 	"strings"
 )
 
-// We are only interested in the pod name, its node and its resource requests
 type Pod struct {
 	// Name and labels are found in the metadata section
 	Metadata struct {
