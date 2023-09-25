@@ -22,8 +22,8 @@ go install github.com/gigurra/kcost@latest
 
 ### Configuration
 
-KCOST uses a configuration file named config.yaml. This file should be located in the same directory from where you run
-the KCOST command. The configuration file contains the price details for GKE Autopilot and the namespaces to exclude
+`kcost` uses a configuration file named config.yaml. This file should be located in the same directory from where you run
+the `kcost` command. The configuration file contains the price details for GKE Autopilot and the namespaces to exclude
 from the cost calculation.
 
 Here is an example of a config.yaml file:
@@ -46,6 +46,19 @@ namespaces:
     - 'kube-node-lease'
     - 'kube-public'
     - 'kube-system'
+```
+
+### Example
+
+```shell
+> kcost
+
+2023/09/25 23:14:53 INFO 
+2023/09/25 23:14:53 INFO -----------PRICE FOR NAMESPACE default------------
+2023/09/25 23:14:53 INFO  + pod ubuntu-deployment-b8c49ddcf-2qb5b: spot=true, cpu=0.500000, memory=0.500000 => price=6.000000
+2023/09/25 23:14:53 INFO  = 6.000000
+2023/09/25 23:14:53 INFO 
+2023/09/25 23:14:53 INFO -->> TOTAL PRICE: 6.000000
 ```
 
 ### License
