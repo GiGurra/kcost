@@ -1,0 +1,8 @@
+gke:
+  autopilot:
+    spot:
+      cpu: 11
+      ram: 1
+    regular:
+      cpu: 36
+      ram: 4

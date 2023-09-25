@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gigurra/kcost/pkg/kubectl"
+	"github.com/gigurra/kcost/pkg/model"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -14,6 +15,14 @@ func main() {
 		slog.Error("kubectl not found")
 		os.Exit(1)
 	}
+
+	prices, err := model.NewPriceTableFromFile("prices.yaml")
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error reading prices: %v\n", err))
+		os.Exit(1)
+	}
+
+	slog.Info(fmt.Sprintf("Prices: %+v\n", prices))
 
 	nodes, err := kubectl.GetNodes()
 	if err != nil {
