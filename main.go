@@ -61,7 +61,7 @@ func main() {
 	slog.Info("-------------------------")
 	for _, pod := range pods {
 		node := nodeLkup[pod.NodeName()]
-		slog.Info(fmt.Sprintf("Pod %s: spot=%v, cpu=%f, memory=%f => price=%f\n", pod.Name(), node.IsSpotNode(), pod.CPURequestCores(), pod.MemoryRequestGB(), podPrice(pod, node, prices.GKE.Autopilot)))
+		slog.Info(fmt.Sprintf("Pod %s: spot=%v, cpu=%f, memory=%f => price=%f\n", pod.Name(), node.IsSpotNode(), pod.CPURequestCores(), pod.MemoryRequestGB(), podPriceLkup[pod.Name()]))
 	}
 
 	slog.Info("-------------------------")
