@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/gigurra/kcost/pkg/kubectl"
+	"github.com/gigurra/kcost/pkg/log"
 	"github.com/gigurra/kcost/pkg/model"
+	"gopkg.in/yaml.v3"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -13,47 +15,78 @@ import (
 func main() {
 	_, err := exec.LookPath("kubectl")
 	if err != nil {
-		slog.Error("kubectl not found")
+		log.ErrLn("kubectl not found")
 		os.Exit(1)
 	}
 
 	config, err := model.NewConfigFromFile("config.yaml")
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error reading config: %v\n", err))
+		log.ErrLn(fmt.Sprintf("error reading config: %v", err))
 		os.Exit(1)
 	}
 
-	slog.Info(fmt.Sprintf("Config: %+v\n", config))
+	log.OutLn("-- Config --")
+	configYaml, err := yaml.Marshal(config)
+	if err != nil {
+		log.ErrLn(fmt.Sprintf("error marshalling config: %v", err))
+		os.Exit(1)
+	}
+	log.OutLn(fmt.Sprintf("%s", string(configYaml)))
 
 	nodes, err := kubectl.GetNodes()
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error getting nodes: %v\n", err))
+		log.ErrLn(fmt.Sprintf("error getting nodes: %v", err))
 		os.Exit(1)
 	}
 
+	log.OutLn("-- Nodes --")
 	for _, node := range nodes {
-		slog.Info(fmt.Sprintf("Node %s: spot=%v, region=%v, zone=%s", node.Name(), node.IsSpotNode(), node.Region(), node.Zone()))
+		log.OutLn(fmt.Sprintf(" * Node %s: spot=%v, region=%v, zone=%s", node.Name(), node.IsSpotNode(), node.Region(), node.Zone()))
+	}
+	log.OutLn("")
+
+	log.OutLn("-- Namespaces included --")
+
+	includedNamespaces, err := getIncludedNamespaces(config)
+	if err != nil {
+		log.ErrLn(fmt.Sprintf("error getting included namespaces: %v", err))
+		os.Exit(1)
 	}
 
-	slog.Info(fmt.Sprintf(""))
+	for _, ns := range includedNamespaces {
+		log.OutLn(fmt.Sprintf(" * %s", ns))
+	}
+
+	log.OutLn("")
+
+	log.OutLn("-- Results --")
+	total := 0.0
+	for _, ns := range includedNamespaces {
+		total += namespacePrice(config, ns, nodes)
+	}
+
+	log.OutLn(fmt.Sprintf(""))
+	log.OutLn(fmt.Sprintf("-->> TOTAL PRICE: %f", total))
+
+}
+
+func getIncludedNamespaces(config model.Config) ([]string, error) {
 
 	allNamespaces, err := kubectl.GetAllNamespaces()
+
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error getting all namespaces: %v\n", err))
+		log.ErrLn(fmt.Sprintf("error getting all namespaces: %v", err))
 		os.Exit(1)
 	}
 
-	total := 0.0
+	result := []string{}
 	for _, ns := range allNamespaces {
 		if !slices.Contains(config.Namespaces.Excluded, ns) {
-			nsPrice := namespacePrice(config, ns, nodes)
-			total += nsPrice
+			result = append(result, ns)
 		}
 	}
 
-	slog.Info(fmt.Sprintf(""))
-	slog.Info(fmt.Sprintf("-->> TOTAL PRICE: %f\n", total))
-
+	return result, err
 }
 
 func podPrice(
