@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"log/slog"
+	"github.com/gigurra/kcost/pkg/log"
 	"strings"
 )
 
@@ -35,12 +35,12 @@ func (p Pod) NodeName() string {
 
 func (p Pod) CPURequestCores() float64 {
 	if len(p.Spec.Containers) == 0 {
-		slog.Warn(fmt.Sprintf("Pod '%s' has no containers\n", p.Name()))
+		log.WarnLn(fmt.Sprintf("pod '%s' has no containers", p.Name()))
 		return 0.0
 	}
 
 	if len(p.Spec.Containers) > 1 {
-		slog.Warn(fmt.Sprintf("Not supported! Pod '%s' has multiple containers. Using first only\n", p.Name()))
+		log.WarnLn(fmt.Sprintf("Not supported! Pod '%s' has multiple containers. Using first only\n", p.Name()))
 	}
 
 	str := p.Spec.Containers[0].Resources.Requests.CPU
@@ -61,7 +61,7 @@ func (p Pod) CPURequestCores() float64 {
 	var f float64
 	_, err := fmt.Sscanf(str, "%f", &f)
 	if err != nil {
-		slog.Warn(fmt.Sprintf("Error parsing CPU request '%s': %v\n", str, err))
+		log.WarnLn(fmt.Sprintf("Error parsing CPU request '%s': %v", str, err))
 	}
 
 	return f
@@ -73,7 +73,7 @@ func parseMem(str string, divisor float64) float64 {
 	var f float64
 	_, err := fmt.Sscanf(str, "%f", &f)
 	if err != nil {
-		slog.Warn(fmt.Sprintf("Error parsing memory request '%s': %v\n", str, err))
+		log.WarnLn(fmt.Sprintf("Error parsing memory request '%s': %v", str, err))
 		return 0.0
 	}
 
@@ -82,12 +82,12 @@ func parseMem(str string, divisor float64) float64 {
 
 func (p Pod) MemoryRequestGB() float64 {
 	if len(p.Spec.Containers) == 0 {
-		slog.Warn(fmt.Sprintf("Pod '%s' has no containers\n", p.Name()))
+		log.WarnLn(fmt.Sprintf("Pod '%s' has no containers", p.Name()))
 		return 0.0
 	}
 
 	if len(p.Spec.Containers) > 1 {
-		slog.Warn(fmt.Sprintf("Not supported! Pod '%s' has multiple containers. Using first only\n", p.Name()))
+		log.WarnLn(fmt.Sprintf("Not supported! Pod '%s' has multiple containers. Using first only", p.Name()))
 	}
 
 	str := p.Spec.Containers[0].Resources.Requests.Memory

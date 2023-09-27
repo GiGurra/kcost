@@ -6,7 +6,6 @@ import (
 	"github.com/gigurra/kcost/pkg/log"
 	"github.com/gigurra/kcost/pkg/model"
 	"gopkg.in/yaml.v3"
-	"log/slog"
 	"os"
 	"os/exec"
 	"slices"
@@ -109,7 +108,7 @@ func namespacePrice(
 
 	pods, err := kubectl.GetPods(namespace)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error getting pods: %v\n", err))
+		log.ErrLn(fmt.Sprintf("Error getting pods: %v", err))
 		os.Exit(1)
 	}
 
@@ -127,16 +126,16 @@ func namespacePrice(
 		return int(podPriceLkup[a.Name()] - podPriceLkup[b.Name()])
 	})
 
-	slog.Info(fmt.Sprintf("-----------PRICE FOR NAMESPACE %s------------", namespace))
+	log.OutLn(fmt.Sprintf(" <> Price for namespace %s:", namespace))
 	for _, pod := range pods {
 		node := nodeLkup[pod.NodeName()]
-		slog.Info(fmt.Sprintf(" + pod %s: spot=%v, cpu=%f, memory=%f => price=%f\n", pod.Name(), node.IsSpotNode(), pod.CPURequestCores(), pod.MemoryRequestGB(), podPriceLkup[pod.Name()]))
+		log.OutLn(fmt.Sprintf("  + pod %s: spot=%v, cpu=%f, memory=%f => price=%f", pod.Name(), node.IsSpotNode(), pod.CPURequestCores(), pod.MemoryRequestGB(), podPriceLkup[pod.Name()]))
 	}
 	priceSum := 0.0
 	for _, pod := range pods {
 		priceSum += podPriceLkup[pod.Name()]
 	}
-	slog.Info(fmt.Sprintf(" = %f\n", priceSum))
+	log.OutLn(fmt.Sprintf("  = %f", priceSum))
 
 	return priceSum
 }

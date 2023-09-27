@@ -2,9 +2,9 @@ package model
 
 import (
 	"fmt"
+	"github.com/gigurra/kcost/pkg/log"
 	"gopkg.in/yaml.v3"
 	"io"
-	"log/slog"
 	"os"
 )
 
@@ -47,7 +47,7 @@ func ReadFile(path string) ([]byte, error) {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			slog.Error(fmt.Sprintf("Error closing file: %v\n", err))
+			log.ErrLn(fmt.Sprintf("Error closing file: %v", err))
 		}
 	}(file)
 
